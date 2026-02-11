@@ -322,24 +322,60 @@ function App() {
       // Play success video from 4th second when cashing out - immediate playback
       successVideo.loop = false;
       
-      // Ensure video is visible and ready
+      // For mobile: ensure video is ready before making it visible
       const playSuccessVideo = () => {
-        // Set time first, then play
-        successVideo.currentTime = 4.0;
+        // For mobile: start from beginning to ensure playback, then seek
+        successVideo.currentTime = 0;
+        
+        // Play first to ensure video starts
         const playPromise = successVideo.play();
         if (playPromise !== undefined) {
           playPromise.then(() => {
-            setSuccessVideoPlaying(true);
+            // Once playing, seek to 4.0 seconds (for mobile compatibility)
+            const seekToTime = () => {
+              if (successVideo.readyState >= 2) {
+                successVideo.currentTime = 4.0;
+                // Video is playing at correct time, now make it visible
+                setSuccessVideoPlaying(true);
+                if (successVideo.style) {
+                  successVideo.style.opacity = '1';
+                  successVideo.style.visibility = 'visible';
+                }
+              } else {
+                // Wait a bit more for video to be ready
+                setTimeout(seekToTime, 50);
+              }
+            };
+            
+            // Wait for video to be ready, then seek
+            if (successVideo.readyState >= 2) {
+              seekToTime();
+            } else {
+              successVideo.addEventListener('canplay', seekToTime, { once: true });
+            }
           }).catch(error => {
             console.error('Error playing success video:', error);
             // Retry if play fails
             setTimeout(() => {
-              successVideo.currentTime = 4.0;
-              successVideo.play().catch(console.error);
+              successVideo.currentTime = 0;
+              successVideo.play().then(() => {
+                setTimeout(() => {
+                  if (successVideo.readyState >= 2) {
+                    successVideo.currentTime = 4.0;
+                    if (successVideo.style) {
+                      successVideo.style.opacity = '1';
+                      successVideo.style.visibility = 'visible';
+                    }
+                  }
+                }, 100);
+              }).catch(console.error);
             }, 100);
           });
         }
       };
+      
+      // Force load the video first
+      successVideo.load();
       
       // If video is ready, play immediately
       if (successVideo.readyState >= 4) {
@@ -349,30 +385,39 @@ function App() {
         // Enough data to play
         playSuccessVideo();
       } else {
-        // Wait for video to be ready
+        // Wait for video to be ready - critical for mobile
         const handleCanPlay = () => {
           playSuccessVideo();
           successVideo.removeEventListener('canplay', handleCanPlay);
           successVideo.removeEventListener('loadeddata', handleLoadedData);
+          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
         };
         
         const handleLoadedData = () => {
           playSuccessVideo();
           successVideo.removeEventListener('canplay', handleCanPlay);
           successVideo.removeEventListener('loadeddata', handleLoadedData);
+          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        };
+        
+        const handleLoadedMetadata = () => {
+          // Metadata loaded, try to play
+          if (successVideo.readyState >= 2) {
+            playSuccessVideo();
+          }
+          successVideo.removeEventListener('canplay', handleCanPlay);
+          successVideo.removeEventListener('loadeddata', handleLoadedData);
+          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
         };
         
         successVideo.addEventListener('canplay', handleCanPlay);
         successVideo.addEventListener('loadeddata', handleLoadedData);
-        
-        // Force load if needed
-        if (successVideo.readyState === 0 || successVideo.readyState === 1) {
-          successVideo.load();
-        }
+        successVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
         
         return () => {
           successVideo.removeEventListener('canplay', handleCanPlay);
           successVideo.removeEventListener('loadeddata', handleLoadedData);
+          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
         };
       }
     } else {
@@ -1224,11 +1269,12 @@ function App() {
               bottom: isDesktop ? '0' : 'auto',
               transform: isDesktop ? 'translateX(calc(-50% + 7cm))' : 'none',
               opacity: gameState === 'DIPPING' ? 1 : 0,
-              transition: gameState === 'CASHED_OUT' ? 'opacity 0s' : 'opacity 0.3s ease-out',
+              transition: 'opacity 0s',
               pointerEvents: gameState === 'DIPPING' ? 'auto' : 'none',
               backgroundColor: 'transparent',
               zIndex: 1,
-              display: gameState === 'DIPPING' || gameState === 'CRASHED' ? 'block' : 'none'
+              display: gameState === 'DIPPING' || gameState === 'CRASHED' ? 'block' : 'none',
+              visibility: gameState === 'CASHED_OUT' ? 'hidden' : 'visible'
             }}
           >
             <source src={bearStartVideo} type="video/mp4" />
@@ -1286,12 +1332,13 @@ function App() {
             objectFit: isDesktop ? 'cover' : 'contain',
             position: 'absolute',
             inset: 0,
-            display: gameState === 'CASHED_OUT' ? 'block' : 'none',
+            display: 'block',
             opacity: gameState === 'CASHED_OUT' ? 1 : 0,
-            transition: 'opacity 0.1s ease-in',
+            transition: 'opacity 0s',
             pointerEvents: gameState === 'CASHED_OUT' ? 'auto' : 'none',
             zIndex: gameState === 'CASHED_OUT' ? 3 : 1,
-            backgroundColor: 'transparent'
+            backgroundColor: 'transparent',
+            visibility: gameState === 'CASHED_OUT' ? 'visible' : 'hidden'
           }}
         >
           <source src={successVideo} type="video/mp4" />
