@@ -35,7 +35,6 @@ function App() {
   const [dontShowInfoAgain, setDontShowInfoAgain] = useState(() => {
     return localStorage.getItem('dontShowInfoTooltip') === 'true';
   });
-  const [visibleWords, setVisibleWords] = useState(0);
 
   // Debug: Log desktop state
   useEffect(() => {
@@ -120,6 +119,19 @@ function App() {
       }, 2000);
     };
     
+    // Connection event handlers
+    socket.on('connect', () => {
+      console.log('Socket connected!');
+    });
+    
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected!');
+    });
+    
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+    
     // Register event handlers
     socket.on('tick', handleTick);
     socket.on('crash', handleCrash);
@@ -129,8 +141,11 @@ function App() {
       socket.off('tick', handleTick);
       socket.off('crash', handleCrash);
       socket.off('success', handleSuccess);
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('connect_error');
     };
-  }, [stake]);
+  }, [stake, socket]);
 
   // Auto-close info tooltip after 4 seconds
   useEffect(() => {
@@ -142,18 +157,9 @@ function App() {
     }
   }, [showInfoTooltip, dontShowInfoAgain]);
 
-  // Show all text on coffee cup when READY (appears all at once)
-  useEffect(() => {
-    if (gameState === 'READY') {
-      // Show all words immediately
-      setVisibleWords(5);
-    } else {
-      setVisibleWords(0);
-    }
-  }, [gameState]);
-
   const successVideoRef = useRef(null);
   const crashVideoRef = useRef(null);
+  const successVideoPreloadRef = useRef(null);
   const dippingVideoRef = useRef(null);
   const crashVideoElementRef = useRef(null);
 
@@ -316,45 +322,59 @@ function App() {
       // Play success video from 4th second when cashing out - immediate playback
       successVideo.loop = false;
       
-      // Set the time and play immediately if ready
+      // Ensure video is visible and ready
       const playSuccessVideo = () => {
+        // Set time first, then play
         successVideo.currentTime = 4.0;
-        successVideo.play().catch(console.error);
+        const playPromise = successVideo.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            setSuccessVideoPlaying(true);
+          }).catch(error => {
+            console.error('Error playing success video:', error);
+            // Retry if play fails
+            setTimeout(() => {
+              successVideo.currentTime = 4.0;
+              successVideo.play().catch(console.error);
+            }, 100);
+          });
+        }
       };
       
-      // Handle when video actually starts playing
-      const handlePlaying = () => {
-        setSuccessVideoPlaying(true);
-        successVideo.removeEventListener('playing', handlePlaying);
-      };
-      successVideo.addEventListener('playing', handlePlaying);
-      
-      if (successVideo.readyState >= 2) {
-        // Video data is loaded, play immediately
+      // If video is ready, play immediately
+      if (successVideo.readyState >= 4) {
+        // Video fully loaded
         playSuccessVideo();
-      } else if (successVideo.readyState >= 1) {
-        // Metadata loaded, set time and play
+      } else if (successVideo.readyState >= 2) {
+        // Enough data to play
         playSuccessVideo();
       } else {
-        // Wait for canplay event for smoother transition
+        // Wait for video to be ready
         const handleCanPlay = () => {
           playSuccessVideo();
           successVideo.removeEventListener('canplay', handleCanPlay);
+          successVideo.removeEventListener('loadeddata', handleLoadedData);
         };
+        
+        const handleLoadedData = () => {
+          playSuccessVideo();
+          successVideo.removeEventListener('canplay', handleCanPlay);
+          successVideo.removeEventListener('loadeddata', handleLoadedData);
+        };
+        
         successVideo.addEventListener('canplay', handleCanPlay);
-        // Also try to load if not already loading
-        if (successVideo.readyState === 0) {
+        successVideo.addEventListener('loadeddata', handleLoadedData);
+        
+        // Force load if needed
+        if (successVideo.readyState === 0 || successVideo.readyState === 1) {
           successVideo.load();
         }
+        
         return () => {
           successVideo.removeEventListener('canplay', handleCanPlay);
-          successVideo.removeEventListener('playing', handlePlaying);
+          successVideo.removeEventListener('loadeddata', handleLoadedData);
         };
       }
-      
-      return () => {
-        successVideo.removeEventListener('playing', handlePlaying);
-      };
     } else {
       // Reset when not cashing out
       setSuccessVideoPlaying(false);
@@ -362,13 +382,22 @@ function App() {
   }, [gameState]);
 
   const startDip = () => {
+    if (!socket || !socket.connected) {
+      console.error('Socket not connected! Cannot start game.');
+      alert('Cannot connect to server. Make sure the backend server is running on port 3001.');
+      return;
+    }
+    console.log('Starting game with stake:', stake);
     setGameState('DIPPING');
     socket.emit('start_game', { stake });
   };
 
   const cashOut = () => {
-    if (gameState === 'DIPPING') {
+    if (gameState === 'DIPPING' && socket && socket.connected) {
+      console.log('Cashing out...');
       socket.emit('cash_out');
+    } else {
+      console.error('Cannot cash out - gameState:', gameState, 'socket connected:', socket?.connected);
     }
   };
 
@@ -1019,100 +1048,6 @@ function App() {
               ))}
             </div>
 
-            {/* Text on Coffee Cup - "Don't let my biscuit dissolve!" - Curved around cup */}
-            <div style={{
-              position: 'absolute',
-              left: isDesktop ? '48%' : 'calc(46% + 1cm)',
-              top: isDesktop ? '56%' : 'calc(54% + 3cm)',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 4,
-              pointerEvents: 'none',
-              textAlign: 'center',
-              width: isDesktop ? '280px' : '240px'
-            }}>
-              <div style={{
-                fontFamily: '"Brush Script MT", "Lucida Handwriting", "Comic Sans MS", cursive',
-                fontSize: isDesktop ? 'clamp(2.2rem, 4.5vw, 3.2rem)' : 'clamp(1.8rem, 7vw, 2.5rem)',
-                color: '#ff1493',
-                fontWeight: 'normal',
-                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.4), 0 0 2px rgba(255, 20, 147, 0.5)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.1em',
-                lineHeight: '1.1',
-                transform: 'perspective(400px) rotateX(-8deg)',
-                transformOrigin: 'center center'
-              }}>
-                {/* Row 1: "Don't" - Top of cup, curved outward */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center',
-                  transform: 'rotate(3deg)'
-                }}>
-                  {["Don't"].map((word, index) => (
-                    <span
-                      key={index}
-                      style={{
-                        opacity: index < visibleWords ? 1 : 0,
-                        display: 'inline-block'
-                      }}
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-                
-                {/* Row 2: "let my biscuit" - Middle of cup, curved around (convex curve) */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  gap: '0.2em', 
-                  flexWrap: 'nowrap',
-                  marginTop: isDesktop ? '-0.2em' : '-0.15em',
-                  position: 'relative'
-                }}>
-                  {["let", "my", "biscuit"].map((word, index) => {
-                    // Create convex curve - center word forward, edges curve back
-                    const rotation = index === 0 ? '4deg' : index === 1 ? '0deg' : '-4deg';
-                    return (
-                      <span
-                        key={index + 1}
-                        style={{
-                          opacity: (index + 1) < visibleWords ? 1 : 0,
-                          transform: `rotate(${rotation})`,
-                          display: 'inline-block'
-                        }}
-                      >
-                        {word}
-                      </span>
-                    );
-                  })}
-                </div>
-                
-                {/* Row 3: "dissolve!" - Bottom of cup, curved outward, tighter spacing */}
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'center',
-                  marginTop: isDesktop ? '-0.15em' : '-0.1em',
-                  transform: 'rotate(-3deg)'
-                }}>
-                  {["dissolve!"].map((word, index) => (
-                    <span
-                      key={index + 4}
-                      style={{
-                        opacity: (index + 4) < visibleWords ? 1 : 0,
-                        display: 'inline-block'
-                      }}
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
             {/* Info Icon on White Coffee Cup - Only show if not disabled */}
             {!dontShowInfoAgain && (
               <div
@@ -1268,13 +1203,13 @@ function App() {
           <source src={bearCrashVideo} type="video/mp4" />
         </video>
 
-        {/* Show bear dipping video when DIPPING - keep visible during transition to prevent blank flash */}
+        {/* Show bear dipping video when DIPPING - hide immediately on CASHED_OUT */}
         <video 
           key="dipping-video"
           ref={(el) => {
             dippingVideoRef.current = el;
             videoRef.current = el; // Also set videoRef for compatibility
-          }} 
+          }}
           playsInline 
           muted={!soundEnabled}
           preload="auto"
@@ -1288,12 +1223,12 @@ function App() {
               top: isDesktop ? 'auto' : '0',
               bottom: isDesktop ? '0' : 'auto',
               transform: isDesktop ? 'translateX(calc(-50% + 7cm))' : 'none',
-              opacity: gameState === 'DIPPING' ? 1 : (gameState === 'CRASHED' || gameState === 'CASHED_OUT' ? 0 : 0),
-              transition: 'opacity 0.3s ease-out',
+              opacity: gameState === 'DIPPING' ? 1 : 0,
+              transition: gameState === 'CASHED_OUT' ? 'opacity 0s' : 'opacity 0.3s ease-out',
               pointerEvents: gameState === 'DIPPING' ? 'auto' : 'none',
               backgroundColor: 'transparent',
               zIndex: 1,
-              display: gameState === 'DIPPING' || gameState === 'CRASHED' || gameState === 'CASHED_OUT' ? 'block' : 'none'
+              display: gameState === 'DIPPING' || gameState === 'CRASHED' ? 'block' : 'none'
             }}
           >
             <source src={bearStartVideo} type="video/mp4" />
@@ -1329,6 +1264,15 @@ function App() {
             <source src={bearCrashVideo} type="video/mp4" />
         </video>
         
+        {/* Preload success video to prevent static image flash */}
+        <video 
+          ref={successVideoPreloadRef}
+          preload="auto"
+          style={{ display: 'none' }}
+        >
+          <source src={successVideo} type="video/mp4" />
+        </video>
+        
         {/* Show success video when CASHED_OUT - always render but control visibility */}
         <video 
           key="success" 
@@ -1342,9 +1286,9 @@ function App() {
             objectFit: isDesktop ? 'cover' : 'contain',
             position: 'absolute',
             inset: 0,
-            display: 'block',
+            display: gameState === 'CASHED_OUT' ? 'block' : 'none',
             opacity: gameState === 'CASHED_OUT' ? 1 : 0,
-            transition: 'opacity 0.2s ease-in',
+            transition: 'opacity 0.1s ease-in',
             pointerEvents: gameState === 'CASHED_OUT' ? 'auto' : 'none',
             zIndex: gameState === 'CASHED_OUT' ? 3 : 1,
             backgroundColor: 'transparent'
