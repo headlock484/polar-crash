@@ -4,7 +4,8 @@ import io from 'socket.io-client';
 import bearVideo from './bear.mp4';
 import bearStartVideo from './bear_start.mp4';
 import bearCrashVideo from './bear_crash.mp4';
-import successVideo from './success.mp4';
+// import successVideo from './success.mp4'; // Replaced with static image for instant mobile display
+import bearSuccessStatic from './bear_success_static.png'; // Success image displayed when cashing out
 import bearGameLaunch from './bear_game_launch.mp4';
 
 const socket = io(process.env.REACT_APP_SOCKET_URL || (window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin));
@@ -26,7 +27,7 @@ function App() {
   const [showYouLose, setShowYouLose] = useState(false);
   const [showLosingText, setShowLosingText] = useState(false);
   const [isCrashShrunk, setIsCrashShrunk] = useState(false);
-  const [successVideoPlaying, setSuccessVideoPlaying] = useState(false);
+  // Removed successVideoPlaying - using static image now for instant display
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeMenuSection, setActiveMenuSection] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -157,9 +158,8 @@ function App() {
     }
   }, [showInfoTooltip, dontShowInfoAgain]);
 
-  const successVideoRef = useRef(null);
+  // Removed successVideoRef and successVideoPreloadRef - using static image now
   const crashVideoRef = useRef(null);
-  const successVideoPreloadRef = useRef(null);
   const dippingVideoRef = useRef(null);
   const crashVideoElementRef = useRef(null);
 
@@ -328,144 +328,16 @@ function App() {
     };
   }, [gameState]);
 
+  // Simplified: Hide dipping video immediately when cashing out (static image displays instantly)
   useEffect(() => {
-    const successVideo = successVideoRef.current;
-    if (successVideo) {
-      // Preload the success video so it's ready when needed
-      successVideo.preload = 'auto';
-      successVideo.load();
-    }
-  }, []);
-
-  useEffect(() => {
-    const successVideo = successVideoRef.current;
     const dippingVideo = dippingVideoRef.current;
     
-    if (gameState === 'CASHED_OUT' && successVideo) {
-      // Immediately hide dipping video to prevent static image
-      if (dippingVideo) {
-        dippingVideo.pause();
-        dippingVideo.style.display = 'none';
-        dippingVideo.style.visibility = 'hidden';
-        dippingVideo.style.opacity = '0';
-      }
-      
-      // Reset playing state when cashing out
-      setSuccessVideoPlaying(false);
-      
-      // Play success video from 4th second when cashing out - immediate playback
-      successVideo.loop = false;
-      
-      // For mobile: ensure video is ready before making it visible
-      const playSuccessVideo = () => {
-        // For mobile: start from beginning to ensure playback, then seek
-        successVideo.currentTime = 0;
-        
-        // Play first to ensure video starts
-        const playPromise = successVideo.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            // Once playing, seek to 4.0 seconds (for mobile compatibility)
-            const seekToTime = () => {
-              if (successVideo.readyState >= 2) {
-                successVideo.currentTime = 4.0;
-                // Video is playing at correct time, now make it visible
-                setSuccessVideoPlaying(true);
-                if (successVideo.style) {
-                  successVideo.style.opacity = '1';
-                  successVideo.style.visibility = 'visible';
-                  successVideo.style.display = 'block';
-                }
-              } else {
-                // Wait a bit more for video to be ready
-                setTimeout(seekToTime, 50);
-              }
-            };
-            
-            // Wait for video to be ready, then seek
-            if (successVideo.readyState >= 2) {
-              seekToTime();
-            } else {
-              successVideo.addEventListener('canplay', seekToTime, { once: true });
-            }
-          }).catch(error => {
-            console.error('Error playing success video:', error);
-            // Retry if play fails
-            setTimeout(() => {
-              successVideo.currentTime = 0;
-              successVideo.play().then(() => {
-                setTimeout(() => {
-                  if (successVideo.readyState >= 2) {
-                    successVideo.currentTime = 4.0;
-                    setSuccessVideoPlaying(true);
-                    if (successVideo.style) {
-                      successVideo.style.opacity = '1';
-                      successVideo.style.visibility = 'visible';
-                      successVideo.style.display = 'block';
-                    }
-                  }
-                }, 100);
-              }).catch(console.error);
-            }, 100);
-          });
-        }
-      };
-      
-      // Force reload video for mobile (prevents static image after multiple plays)
-      successVideo.load();
-      
-      // Small delay to ensure load() completes on mobile
-      const loadTimer = setTimeout(() => {
-        // If video is ready, play immediately
-        if (successVideo.readyState >= 4) {
-          // Video fully loaded
-          playSuccessVideo();
-        } else if (successVideo.readyState >= 2) {
-          // Enough data to play
-          playSuccessVideo();
-        } else {
-          // Wait for video to be ready
-          const handleCanPlay = () => {
-            playSuccessVideo();
-            successVideo.removeEventListener('canplay', handleCanPlay);
-            successVideo.removeEventListener('loadeddata', handleLoadedData);
-            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-          };
-          
-          const handleLoadedData = () => {
-            playSuccessVideo();
-            successVideo.removeEventListener('canplay', handleCanPlay);
-            successVideo.removeEventListener('loadeddata', handleLoadedData);
-            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-          };
-          
-          const handleLoadedMetadata = () => {
-            // Metadata loaded, try to play
-            if (successVideo.readyState >= 2) {
-              playSuccessVideo();
-            }
-            successVideo.removeEventListener('canplay', handleCanPlay);
-            successVideo.removeEventListener('loadeddata', handleLoadedData);
-            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-          };
-          
-          successVideo.addEventListener('canplay', handleCanPlay);
-          successVideo.addEventListener('loadeddata', handleLoadedData);
-          successVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
-        }
-      }, 50);
-      
-      return () => {
-        clearTimeout(loadTimer);
-      };
-    } else {
-      // Reset when not cashing out - ensure video is reset
-      setSuccessVideoPlaying(false);
-      const successVid = successVideoRef.current;
-      if (successVid && gameState !== 'CASHED_OUT') {
-        successVid.pause();
-        successVid.currentTime = 0;
-      }
+    if (gameState === 'CASHED_OUT' && dippingVideo) {
+      // Immediately hide dipping video to prevent static image flash
+      dippingVideo.pause();
+      dippingVideo.style.display = 'none';
+      dippingVideo.style.visibility = 'hidden';
+      dippingVideo.style.opacity = '0';
     }
   }, [gameState]);
 
@@ -492,7 +364,6 @@ function App() {
   const tryAgain = () => {
     // Reset all videos when returning to READY
     const crashVideo = crashVideoElementRef.current;
-    const successVid = successVideoRef.current;
     const dippingVid = dippingVideoRef.current;
     
     if (crashVideo) {
@@ -500,11 +371,7 @@ function App() {
       crashVideo.currentTime = 0;
       crashVideo.load();
     }
-    if (successVid) {
-      successVid.pause();
-      successVid.currentTime = 0;
-      successVid.load();
-    }
+    // Removed successVid - using static image now, no video to reset
     if (dippingVid) {
       dippingVid.pause();
       dippingVid.currentTime = 0;
@@ -513,7 +380,7 @@ function App() {
     setGameState('READY');
     setMultiplier(1.00);
     setShowTryAgain(false);
-    setSuccessVideoPlaying(false);
+    // Removed successVideoPlaying state
   };
 
   // Auto cashout when multiplier reaches auto cashout point
@@ -1390,52 +1257,26 @@ function App() {
             <source src={bearCrashVideo} type="video/mp4" />
         </video>
         
-        {/* Preload success video to prevent static image flash */}
-        <video 
-          ref={successVideoPreloadRef}
-          preload="auto"
-          style={{ display: 'none' }}
-        >
-          <source src={successVideo} type="video/mp4" />
-        </video>
-        
-        {/* Black background overlay to prevent static image flash during cashout transition */}
-        {gameState === 'CASHED_OUT' && !successVideoPlaying && (
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: '#000000',
-            zIndex: 2,
-            width: '100%',
-            height: '100%'
-          }} />
+        {/* Show success image when CASHED_OUT - instant display, no loading delay */}
+        {gameState === 'CASHED_OUT' && (
+          <img 
+            key="success-image"
+            src={bearSuccessStatic}
+            alt="Success"
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              objectFit: isDesktop ? 'cover' : 'contain',
+              position: 'absolute',
+              inset: 0,
+              display: 'block',
+              opacity: 1,
+              pointerEvents: 'auto',
+              zIndex: 3,
+              backgroundColor: 'transparent'
+            }}
+          />
         )}
-        
-        {/* Show success video when CASHED_OUT - hidden until actually playing */}
-        <video 
-          key="success" 
-          ref={successVideoRef} 
-          playsInline 
-          muted={!soundEnabled}
-          preload="auto"
-          poster=""
-          style={{ 
-            width: '100%', 
-            height: '100%', 
-            objectFit: isDesktop ? 'cover' : 'contain',
-            position: 'absolute',
-            inset: 0,
-            display: successVideoPlaying && gameState === 'CASHED_OUT' ? 'block' : 'none',
-            opacity: successVideoPlaying && gameState === 'CASHED_OUT' ? 1 : 0,
-            transition: 'opacity 0s',
-            pointerEvents: gameState === 'CASHED_OUT' ? 'auto' : 'none',
-            zIndex: gameState === 'CASHED_OUT' ? 3 : 1,
-            backgroundColor: 'transparent',
-            visibility: successVideoPlaying && gameState === 'CASHED_OUT' ? 'visible' : 'hidden'
-          }}
-        >
-          <source src={successVideo} type="video/mp4" />
-        </video>
 
         {/* OVERLAY */}
         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'transparent', zIndex: 3 }}>
