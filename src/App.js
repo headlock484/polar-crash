@@ -1157,7 +1157,7 @@ function App() {
               ))}
             </div>
 
-            {/* Info Icon on White Coffee Cup - Only show if not disabled */}
+            {/* How to Play Text on Coffee Cup - Cursive style wrapped around cup */}
             {!dontShowInfoAgain && (
               <div
                 style={{
@@ -1165,41 +1165,54 @@ function App() {
                   left: isDesktop ? '48%' : 'calc(46% + 1cm)',
                   top: isDesktop ? '58%' : 'calc(56% + 3cm)',
                   transform: 'translate(-50%, -50%)',
-                  zIndex: 5,
-                  cursor: 'pointer'
+                  zIndex: 10,
+                  cursor: 'pointer',
+                  pointerEvents: 'auto',
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation'
                 }}
                 onMouseEnter={() => {
-                  if (!dontShowInfoAgain) {
+                  if (!dontShowInfoAgain && isDesktop) {
                     setShowInfoTooltip(true);
                   }
                 }}
                 onMouseLeave={() => {
                   // Don't close on mouse leave if user is interacting with tooltip
                 }}
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!dontShowInfoAgain) {
+                    setShowInfoTooltip(!showInfoTooltip);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   if (!dontShowInfoAgain) {
                     setShowInfoTooltip(!showInfoTooltip);
                   }
                 }}
               >
                 <div style={{
-                  width: isDesktop ? 'clamp(2rem, 5vw, 2.5rem)' : 'clamp(1.75rem, 6vw, 2.25rem)',
-                  height: isDesktop ? 'clamp(2rem, 5vw, 2.5rem)' : 'clamp(1.75rem, 6vw, 2.25rem)',
-                  borderRadius: '50%',
-                  backgroundColor: 'transparent',
-                  border: '2px solid #ff1493',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ff1493',
-                  fontSize: isDesktop ? 'clamp(1.25rem, 3vw, 1.5rem)' : 'clamp(1rem, 4vw, 1.25rem)',
-                  fontWeight: '900',
-                  fontFamily: 'Arial, sans-serif',
-                  boxShadow: '0 2px 8px rgba(255, 20, 147, 0.5), 0 0 12px rgba(255, 20, 147, 0.3)',
-                  transition: 'all 0.2s ease',
-                  transform: showInfoTooltip ? 'scale(1.1)' : 'scale(1)'
+                  fontFamily: '"Brush Script MT", "Lucida Handwriting", "Comic Sans MS", cursive',
+                  fontSize: isDesktop ? 'clamp(1.6rem, 4vw, 2.2rem)' : 'clamp(1.4rem, 6vw, 1.8rem)',
+                  color: '#00f5ff',
+                  fontWeight: '600',
+                  textShadow: '3px 3px 6px rgba(0, 0, 0, 0.9), 0 0 15px rgba(0, 245, 255, 1), 0 0 25px rgba(0, 245, 255, 0.6), 0 0 35px rgba(0, 245, 255, 0.4)',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '0.1em',
+                  filter: showInfoTooltip ? 'brightness(1.5) drop-shadow(0 0 12px rgba(0, 245, 255, 1))' : 'brightness(1) drop-shadow(0 0 8px rgba(0, 245, 255, 0.8))',
+                  transform: showInfoTooltip ? 'perspective(400px) rotateX(-8deg) scale(1.2)' : 'perspective(400px) rotateX(-8deg) scale(1)',
+                  transformOrigin: 'center center',
+                  transition: 'all 0.3s ease',
+                  WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.3)',
+                  textRendering: 'optimizeLegibility',
+                  WebkitFontSmoothing: 'antialiased',
+                  MozOsxFontSmoothing: 'grayscale'
                 }}>
-                  i
+                  How to Play
                 </div>
 
                 {/* Tooltip with How to Play Summary */}
@@ -1312,7 +1325,8 @@ function App() {
           <source src={bearCrashVideo} type="video/mp4" />
         </video>
 
-        {/* Show bear dipping video when DIPPING - hide immediately on CASHED_OUT */}
+        {/* Show bear dipping video when DIPPING - completely removed from DOM on CASHED_OUT */}
+        {gameState !== 'CASHED_OUT' && (
         <video 
           key="dipping-video"
           ref={(el) => {
@@ -1338,11 +1352,13 @@ function App() {
               backgroundColor: 'transparent',
               zIndex: 1,
               display: gameState === 'DIPPING' || gameState === 'CRASHED' ? 'block' : 'none',
-              visibility: gameState === 'CASHED_OUT' ? 'hidden' : 'visible'
+              visibility: 'visible'
             }}
+            poster=""
           >
             <source src={bearStartVideo} type="video/mp4" />
         </video>
+        )}
         
         {/* Show bear crash video when CRASHED - overlay on top, fade in smoothly */}
         <video 
@@ -1382,6 +1398,18 @@ function App() {
         >
           <source src={successVideo} type="video/mp4" />
         </video>
+        
+        {/* Black background overlay to prevent static image flash during cashout transition */}
+        {gameState === 'CASHED_OUT' && !successVideoPlaying && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: '#000000',
+            zIndex: 2,
+            width: '100%',
+            height: '100%'
+          }} />
+        )}
         
         {/* Show success video when CASHED_OUT - hidden until actually playing */}
         <video 
@@ -2764,7 +2792,12 @@ function App() {
                   e.currentTarget.style.boxShadow = '0 6px 20px rgba(64, 224, 208, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)';
                 }}
               >
-                  DIP BISCUIT
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    DIP BISCUIT
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff1493" style={{ marginLeft: '0.25rem', filter: 'drop-shadow(0 0 4px rgba(255, 20, 147, 0.8))' }}>
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </span>
                 </button>
               )}
               
@@ -3023,7 +3056,12 @@ function App() {
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                   marginBottom: 'clamp(0.4rem, 1.2vw, 0.6rem)'
                 }}>
-                  DIP BISCUIT
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                    DIP BISCUIT
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff1493" style={{ marginLeft: '0.25rem', filter: 'drop-shadow(0 0 4px rgba(255, 20, 147, 0.8))' }}>
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </span>
                 </button>
               )}
               
