@@ -171,8 +171,9 @@ function App() {
     if (!video) {
       // Video element not ready yet, wait a bit
       const timer = setTimeout(() => {
-        const v = videoRef.current;
+        const v = crashVideoElementRef.current;
         if (v && gameState === 'CRASHED') {
+          // Force reload for mobile
           v.load();
           // Wait for video to be ready before seeking and playing
           const playWhenReady = () => {
@@ -199,6 +200,9 @@ function App() {
     // Video element exists, ensure it plays continuously
     video.loop = false;
     
+    // Force reload video for mobile (prevents static image after multiple plays)
+    video.load();
+    
     const source = video.querySelector('source');
     if (source && source.src && source.src.includes('bear_crash')) {
       // Source is correct, load and play
@@ -217,24 +221,44 @@ function App() {
       };
       
       const playCrashVideo = () => {
-        if (video.readyState >= 2) {
-          video.currentTime = 1.25;
-          const playPromise = video.play();
-          if (playPromise !== undefined) {
-            playPromise.catch(console.error);
-          }
+        // For mobile: start from 0, then seek to ensure playback
+        video.currentTime = 0;
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            // Once playing, seek to 1.25 seconds
+            if (video.readyState >= 2) {
+              video.currentTime = 1.25;
+            } else {
+              video.addEventListener('canplay', () => {
+                video.currentTime = 1.25;
+              }, { once: true });
+            }
+          }).catch(error => {
+            console.error('Error playing crash video:', error);
+            // Retry
+            setTimeout(() => {
+              video.currentTime = 0;
+              video.play().then(() => {
+                if (video.readyState >= 2) {
+                  video.currentTime = 1.25;
+                }
+              }).catch(console.error);
+            }, 100);
+          });
         }
       };
       
       video.addEventListener('pause', handlePause);
       const playingInterval = setInterval(checkPlaying, 500);
       
-      if (video.readyState >= 2) {
+      if (video.readyState >= 4) {
+        playCrashVideo();
+      } else if (video.readyState >= 2) {
         playCrashVideo();
       } else {
         video.addEventListener('canplay', playCrashVideo, { once: true });
         video.addEventListener('loadeddata', playCrashVideo, { once: true });
-        video.load();
       }
       
       return () => {
@@ -374,17 +398,63 @@ function App() {
         }
       };
       
-      // Force load the video first
+      // Force reload video for mobile (prevents static image after multiple plays)
       successVideo.load();
       
-      // If video is ready, play immediately
-      if (successVideo.readyState >= 4) {
-        // Video fully loaded
-        playSuccessVideo();
-      } else if (successVideo.readyState >= 2) {
-        // Enough data to play
-        playSuccessVideo();
-      } else {
+      // Small delay to ensure load() completes on mobile
+      const loadTimer = setTimeout(() => {
+        // If video is ready, play immediately
+        if (successVideo.readyState >= 4) {
+          // Video fully loaded
+          playSuccessVideo();
+        } else if (successVideo.readyState >= 2) {
+          // Enough data to play
+          playSuccessVideo();
+        } else {
+          // Wait for video to be ready
+          const handleCanPlay = () => {
+            playSuccessVideo();
+            successVideo.removeEventListener('canplay', handleCanPlay);
+            successVideo.removeEventListener('loadeddata', handleLoadedData);
+            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+          };
+          
+          const handleLoadedData = () => {
+            playSuccessVideo();
+            successVideo.removeEventListener('canplay', handleCanPlay);
+            successVideo.removeEventListener('loadeddata', handleLoadedData);
+            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+          };
+          
+          const handleLoadedMetadata = () => {
+            // Metadata loaded, try to play
+            if (successVideo.readyState >= 2) {
+              playSuccessVideo();
+            }
+            successVideo.removeEventListener('canplay', handleCanPlay);
+            successVideo.removeEventListener('loadeddata', handleLoadedData);
+            successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+          };
+          
+          successVideo.addEventListener('canplay', handleCanPlay);
+          successVideo.addEventListener('loadeddata', handleLoadedData);
+          successVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
+        }
+      }, 50);
+      
+      return () => {
+        clearTimeout(loadTimer);
+      };
+    } else {
+      // Reset when not cashing out - ensure video is reset
+      setSuccessVideoPlaying(false);
+      const successVid = successVideoRef.current;
+      if (successVid && gameState !== 'CASHED_OUT') {
+        successVid.pause();
+        successVid.currentTime = 0;
+      }
+    }
+  }, [gameState]);
         // Wait for video to be ready - critical for mobile
         const handleCanPlay = () => {
           playSuccessVideo();
@@ -447,9 +517,30 @@ function App() {
   };
 
   const tryAgain = () => {
+    // Reset all videos when returning to READY
+    const crashVideo = crashVideoElementRef.current;
+    const successVid = successVideoRef.current;
+    const dippingVid = dippingVideoRef.current;
+    
+    if (crashVideo) {
+      crashVideo.pause();
+      crashVideo.currentTime = 0;
+      crashVideo.load();
+    }
+    if (successVid) {
+      successVid.pause();
+      successVid.currentTime = 0;
+      successVid.load();
+    }
+    if (dippingVid) {
+      dippingVid.pause();
+      dippingVid.currentTime = 0;
+    }
+    
     setGameState('READY');
     setMultiplier(1.00);
     setShowTryAgain(false);
+    setSuccessVideoPlaying(false);
   };
 
   // Auto cashout when multiplier reaches auto cashout point
