@@ -5,7 +5,7 @@ import bearVideo from './bear.mp4';
 import bearStartVideo from './bear_start.mp4';
 import bearCrashVideo from './bear_crash.mp4';
 // import successVideo from './success.mp4'; // Replaced with static image for instant mobile display
-import bearSuccessStatic from './bear_success_static.png'; // Success image displayed when cashing out
+import bearSuccessStatic from './bear_success_static.jpg.png'; // Success image displayed when cashing out
 import bearGameLaunch from './bear_game_launch.mp4';
 
 const socket = io(process.env.REACT_APP_SOCKET_URL || (window.location.origin.includes('localhost') ? 'http://localhost:3001' : window.location.origin));
