@@ -455,46 +455,6 @@ function App() {
       }
     }
   }, [gameState]);
-        // Wait for video to be ready - critical for mobile
-        const handleCanPlay = () => {
-          playSuccessVideo();
-          successVideo.removeEventListener('canplay', handleCanPlay);
-          successVideo.removeEventListener('loadeddata', handleLoadedData);
-          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        };
-        
-        const handleLoadedData = () => {
-          playSuccessVideo();
-          successVideo.removeEventListener('canplay', handleCanPlay);
-          successVideo.removeEventListener('loadeddata', handleLoadedData);
-          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        };
-        
-        const handleLoadedMetadata = () => {
-          // Metadata loaded, try to play
-          if (successVideo.readyState >= 2) {
-            playSuccessVideo();
-          }
-          successVideo.removeEventListener('canplay', handleCanPlay);
-          successVideo.removeEventListener('loadeddata', handleLoadedData);
-          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        };
-        
-        successVideo.addEventListener('canplay', handleCanPlay);
-        successVideo.addEventListener('loadeddata', handleLoadedData);
-        successVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
-        
-        return () => {
-          successVideo.removeEventListener('canplay', handleCanPlay);
-          successVideo.removeEventListener('loadeddata', handleLoadedData);
-          successVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        };
-      }
-    } else {
-      // Reset when not cashing out
-      setSuccessVideoPlaying(false);
-    }
-  }, [gameState]);
 
   const startDip = () => {
     if (!socket || !socket.connected) {
