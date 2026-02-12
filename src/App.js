@@ -339,7 +339,17 @@ function App() {
 
   useEffect(() => {
     const successVideo = successVideoRef.current;
+    const dippingVideo = dippingVideoRef.current;
+    
     if (gameState === 'CASHED_OUT' && successVideo) {
+      // Immediately hide dipping video to prevent static image
+      if (dippingVideo) {
+        dippingVideo.pause();
+        dippingVideo.style.display = 'none';
+        dippingVideo.style.visibility = 'hidden';
+        dippingVideo.style.opacity = '0';
+      }
+      
       // Reset playing state when cashing out
       setSuccessVideoPlaying(false);
       
@@ -364,6 +374,7 @@ function App() {
                 if (successVideo.style) {
                   successVideo.style.opacity = '1';
                   successVideo.style.visibility = 'visible';
+                  successVideo.style.display = 'block';
                 }
               } else {
                 // Wait a bit more for video to be ready
@@ -386,9 +397,11 @@ function App() {
                 setTimeout(() => {
                   if (successVideo.readyState >= 2) {
                     successVideo.currentTime = 4.0;
+                    setSuccessVideoPlaying(true);
                     if (successVideo.style) {
                       successVideo.style.opacity = '1';
                       successVideo.style.visibility = 'visible';
+                      successVideo.style.display = 'block';
                     }
                   }
                 }, 100);
@@ -1370,26 +1383,27 @@ function App() {
           <source src={successVideo} type="video/mp4" />
         </video>
         
-        {/* Show success video when CASHED_OUT - always render but control visibility */}
+        {/* Show success video when CASHED_OUT - hidden until actually playing */}
         <video 
           key="success" 
           ref={successVideoRef} 
           playsInline 
           muted={!soundEnabled}
           preload="auto"
+          poster=""
           style={{ 
             width: '100%', 
             height: '100%', 
             objectFit: isDesktop ? 'cover' : 'contain',
             position: 'absolute',
             inset: 0,
-            display: 'block',
-            opacity: gameState === 'CASHED_OUT' ? 1 : 0,
+            display: successVideoPlaying && gameState === 'CASHED_OUT' ? 'block' : 'none',
+            opacity: successVideoPlaying && gameState === 'CASHED_OUT' ? 1 : 0,
             transition: 'opacity 0s',
             pointerEvents: gameState === 'CASHED_OUT' ? 'auto' : 'none',
             zIndex: gameState === 'CASHED_OUT' ? 3 : 1,
             backgroundColor: 'transparent',
-            visibility: gameState === 'CASHED_OUT' ? 'visible' : 'hidden'
+            visibility: successVideoPlaying && gameState === 'CASHED_OUT' ? 'visible' : 'hidden'
           }}
         >
           <source src={successVideo} type="video/mp4" />
