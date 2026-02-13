@@ -702,17 +702,17 @@ function App() {
           .controls-container button.game-button {
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
             padding: 0 !important;
-            height: clamp(2.93rem, 6.7vw, 3.35rem) !important;
+            height: clamp(2.34rem, 5.36vw, 2.68rem) !important;
           }
           .controls-container button.dip-button {
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
             padding: 0 !important;
-            height: clamp(2.93rem, 6.7vw, 3.35rem) !important;
+            height: clamp(2.34rem, 5.36vw, 2.68rem) !important;
           }
           .controls-container button.auto-bet-button {
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
             padding: 0 !important;
-            height: clamp(2.93rem, 6.7vw, 3.35rem) !important;
+            height: clamp(2.34rem, 5.36vw, 2.68rem) !important;
             min-width: auto !important;
             max-width: none !important;
             flex: 0 0 auto !important;
@@ -723,7 +723,7 @@ function App() {
             border-left: 1px solid #ff1493 !important;
             border-right: 1px solid #ff1493 !important;
             box-shadow: 0 2px 0 #87ceeb, 2px 0 0 #87ceeb, -2px 0 0 #87ceeb !important;
-            height: clamp(2.93rem, 6.7vw, 3.35rem) !important;
+            height: clamp(2.34rem, 5.36vw, 2.68rem) !important;
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
             color: #ffffff !important;
             display: flex !important;
@@ -735,7 +735,7 @@ function App() {
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
           }
           .controls-container div[style*="border"] {
-            height: clamp(2.93rem, 6.7vw, 3.35rem) !important;
+            height: clamp(2.34rem, 5.36vw, 2.68rem) !important;
           }
           .controls-container span {
             font-size: clamp(1.00rem, 2.93vw, 1.17rem) !important;
@@ -789,7 +789,7 @@ function App() {
         display: 'flex', 
         flexDirection: 'column', 
         fontFamily: 'sans-serif',
-        background: isDesktop ? 'transparent' : '#c0c0c0',
+        background: isDesktop ? '#FFE5E5' : '#c0c0c0',
         position: 'fixed',
         top: 0,
         left: 0,
@@ -858,7 +858,7 @@ function App() {
         flexDirection: 'column',
         height: '100%',
         position: 'relative',
-        backgroundColor: 'transparent',
+        backgroundColor: isDesktop ? '#FFE5E5' : 'transparent',
         margin: isDesktop ? '0 auto' : '0',
         alignItems: isDesktop ? 'center' : 'stretch'
       }}>
@@ -936,7 +936,7 @@ function App() {
         alignItems: isDesktop ? 'flex-end' : 'center',
         justifyContent: 'center',
         padding: '0',
-        marginTop: isDesktop ? 'clamp(4.5rem, 8.5vw, 6.5rem)' : '0',
+        marginTop: isDesktop ? 'clamp(5.2rem, 9.8vw, 7.5rem)' : '0',
         paddingBottom: isDesktop ? 'clamp(2rem, 4vw, 3rem)' : '0',
         minHeight: isDesktop ? 'clamp(30rem, 50vw, 40rem)' : 'auto',
         boxSizing: 'border-box'
@@ -990,7 +990,8 @@ function App() {
                 right: isDesktop ? 'auto' : '0',
                 top: isDesktop ? 'auto' : '0',
                 bottom: isDesktop ? '0' : 'auto',
-                transform: isDesktop ? 'translateX(calc(-50% + 7cm))' : 'none'
+                transform: isDesktop ? 'translateX(calc(-50% + 7cm))' : 'none',
+                backgroundColor: '#FFE5E5'
               }}
             />
             
@@ -1216,7 +1217,7 @@ function App() {
               opacity: gameState === 'DIPPING' ? 1 : 0,
               transition: 'opacity 0s',
               pointerEvents: gameState === 'DIPPING' ? 'auto' : 'none',
-              backgroundColor: 'transparent',
+              backgroundColor: '#FFE5E5',
               zIndex: 1,
               display: gameState === 'DIPPING' || gameState === 'CRASHED' ? 'block' : 'none',
               visibility: 'visible'
@@ -1249,7 +1250,7 @@ function App() {
               opacity: gameState === 'CRASHED' ? 1 : 0,
               transition: isDesktop ? 'all 0.3s ease-out' : 'opacity 0.3s ease-in',
               pointerEvents: gameState === 'CRASHED' ? 'auto' : 'none',
-              backgroundColor: 'transparent',
+              backgroundColor: '#FFE5E5',
               zIndex: 2,
               display: gameState === 'CRASHED' ? 'block' : 'none'
             }}
@@ -1273,7 +1274,7 @@ function App() {
               opacity: 1,
               pointerEvents: 'auto',
               zIndex: 3,
-              backgroundColor: 'transparent'
+              backgroundColor: '#FFE5E5'
             }}
           />
         )}
@@ -2321,14 +2322,14 @@ function App() {
         width: isDesktop ? '100%' : '100%',
         maxWidth: isDesktop ? '100%' : 'none', 
         backgroundColor: isDesktop ? 'rgba(0, 0, 0, 0.95)' : 'rgba(15, 23, 42, 0.85)', 
-        padding: isDesktop ? 'clamp(1rem, 2.5vw, 1.5rem)' : 'clamp(0.6rem, 1.6vw, 0.8rem)', 
+        padding: isDesktop ? 'clamp(0.8rem, 2vw, 1.2rem)' : 'clamp(0.48rem, 1.28vw, 0.64rem)', 
         borderRadius: isDesktop ? '12px' : '0',
         border: isDesktop ? '1px solid rgba(255, 20, 147, 0.5)' : 'none',
         zIndex: 1,
         backdropFilter: isDesktop ? 'blur(10px)' : 'blur(10px)',
         display: 'flex',
         flexDirection: 'column',
-        gap: isDesktop ? 'clamp(0.15rem, 0.5vw, 0.25rem)' : 'clamp(0.4rem, 1.2vw, 0.6rem)',
+        gap: isDesktop ? 'clamp(0.12rem, 0.4vw, 0.2rem)' : 'clamp(0.32rem, 0.96vw, 0.48rem)',
         boxSizing: 'border-box',
         marginTop: isDesktop ? 'clamp(0.5rem, 1.5vw, 1rem)' : '0',
         overflowY: isDesktop ? 'visible' : 'auto',
@@ -2346,15 +2347,15 @@ function App() {
               width: '100%',
               display: 'flex',
               alignItems: 'center',
-              gap: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-              marginBottom: 'clamp(0.15rem, 0.5vw, 0.25rem)',
+              gap: 'clamp(0.32rem, 0.96vw, 0.48rem)',
+              marginBottom: 'clamp(0.12rem, 0.4vw, 0.2rem)',
               marginTop: '0'
             }}>
                 <button
                   onClick={() => setStake(Math.max(1, Number(stake) - 1))}
                   style={{
                     width: 'clamp(2.93rem, 6.7vw, 3.35rem)',
-                    height: 'clamp(2.93rem, 6.7vw, 3.35rem)',
+                    height: 'clamp(2.34rem, 5.36vw, 2.68rem)',
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
@@ -2425,7 +2426,7 @@ function App() {
                   onClick={() => setStake(Number(stake) + 1)}
                   style={{
                     width: 'clamp(2.93rem, 6.7vw, 3.35rem)',
-                    height: 'clamp(2.93rem, 6.7vw, 3.35rem)',
+                    height: 'clamp(2.34rem, 5.36vw, 2.68rem)',
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
@@ -2458,9 +2459,9 @@ function App() {
             <div style={{
               display: 'flex',
               flexDirection: 'row',
-              gap: 'clamp(0.3rem, 0.9vw, 0.5rem)',
+              gap: 'clamp(0.24rem, 0.72vw, 0.4rem)',
               width: '100%',
-              marginBottom: 'clamp(0.15rem, 0.5vw, 0.25rem)'
+              marginBottom: 'clamp(0.12rem, 0.4vw, 0.2rem)'
             }}>
                 <button
                   onClick={() => setStake(10)}
@@ -2469,7 +2470,7 @@ function App() {
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: stake === 10 ? 'linear-gradient(135deg, #ff6b9d 0%, #c44569 100%)' : 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
-                    height: 'clamp(2.93rem, 6.7vw, 3.35rem)',
+                    height: 'clamp(2.34rem, 5.36vw, 2.68rem)',
                     fontSize: 'clamp(1.00rem, 2.93vw, 1.17rem)',
                     fontWeight: '700',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -2503,7 +2504,7 @@ function App() {
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: stake === 20 ? 'linear-gradient(135deg, #ff6b9d 0%, #c44569 100%)' : 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
-                    height: 'clamp(2.93rem, 6.7vw, 3.35rem)',
+                    height: 'clamp(2.34rem, 5.36vw, 2.68rem)',
                     fontSize: 'clamp(1.00rem, 2.93vw, 1.17rem)',
                     fontWeight: '700',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -2537,7 +2538,7 @@ function App() {
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: stake === 50 ? 'linear-gradient(135deg, #ff6b9d 0%, #c44569 100%)' : 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
-                    height: 'clamp(2.93rem, 6.7vw, 3.35rem)',
+                    height: 'clamp(2.34rem, 5.36vw, 2.68rem)',
                     fontSize: 'clamp(1.00rem, 2.93vw, 1.17rem)',
                     fontWeight: '700',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -2587,7 +2588,7 @@ function App() {
                   boxShadow: '0 6px 20px rgba(255, 107, 157, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                  marginBottom: 'clamp(0.25rem, 0.8vw, 0.4rem)',
+                  marginBottom: 'clamp(0.2rem, 0.64vw, 0.32rem)',
                   padding: '0'
                 }}
                 onMouseEnter={(e) => {
@@ -2621,7 +2622,7 @@ function App() {
                   boxShadow: '0 6px 20px rgba(64, 224, 208, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                  marginBottom: 'clamp(0.25rem, 0.8vw, 0.4rem)',
+                  marginBottom: 'clamp(0.2rem, 0.64vw, 0.32rem)',
                   padding: '0'
                 }}
                 onMouseEnter={(e) => {
@@ -2656,7 +2657,7 @@ function App() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all 0.3s ease',
-                  height: 'clamp(3.15rem, 7.2vw, 3.6rem)',
+                  height: 'clamp(2.52rem, 5.76vw, 2.88rem)',
                   fontSize: 'clamp(1.08rem, 3.15vw, 1.26rem)',
                   fontWeight: '700',
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -2702,14 +2703,14 @@ function App() {
                 width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 'clamp(0.4rem, 1.2vw, 0.6rem)',
-                marginBottom: 'clamp(0.4rem, 1.2vw, 0.6rem)'
+                gap: 'clamp(0.32rem, 0.96vw, 0.48rem)',
+                marginBottom: 'clamp(0.32rem, 0.96vw, 0.48rem)'
               }}>
                 <button
                   onClick={() => setStake(Math.max(1, Number(stake) - 1))}
                   style={{
                     width: 'clamp(2rem, 4.8vw, 2.4rem)',
-                    height: 'clamp(2rem, 4.8vw, 2.4rem)',
+                    height: 'clamp(1.6rem, 3.84vw, 1.92rem)',
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
@@ -2732,7 +2733,7 @@ function App() {
                   border: '1px solid #ff1493',
                   borderRadius: '12px',
                   background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
-                  height: 'clamp(2rem, 4.8vw, 2.4rem)',
+                  height: 'clamp(1.6rem, 3.84vw, 1.92rem)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -2765,7 +2766,7 @@ function App() {
                   onClick={() => setStake(Number(stake) + 1)}
                   style={{
                     width: 'clamp(2rem, 4.8vw, 2.4rem)',
-                    height: 'clamp(2rem, 4.8vw, 2.4rem)',
+                    height: 'clamp(1.6rem, 3.84vw, 1.92rem)',
                     border: '1px solid #ff1493',
                     borderRadius: '12px',
                     background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
@@ -2788,9 +2789,9 @@ function App() {
               <div style={{
                 display: 'flex',
                 flexDirection: 'row',
-                gap: 'clamp(0.4rem, 1.2vw, 0.6rem)',
+                gap: 'clamp(0.32rem, 0.96vw, 0.48rem)',
                 width: '100%',
-                marginBottom: 'clamp(0.4rem, 1.2vw, 0.6rem)'
+                marginBottom: 'clamp(0.32rem, 0.96vw, 0.48rem)'
               }}>
                 <button
                   onClick={() => setStake(10)}
@@ -2855,7 +2856,7 @@ function App() {
                 <button onClick={cashOut} className="game-button" style={{ 
                   width: '100%',
                   background: 'linear-gradient(135deg, #ff6b9d 0%, #c44569 100%)',
-                  height: 'clamp(2.8rem, 6.4vw, 3.6rem)', 
+                  height: 'clamp(2.24rem, 5.12vw, 2.88rem)', 
                   borderRadius: '12px', 
                   cursor: 'pointer', 
                   border: '1px solid #ff1493',
@@ -2871,7 +2872,7 @@ function App() {
                   boxShadow: '0 6px 20px rgba(255, 107, 157, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                  marginBottom: 'clamp(0.4rem, 1.2vw, 0.6rem)'
+                  marginBottom: 'clamp(0.32rem, 0.96vw, 0.48rem)'
                 }}>
                   CASH OUT
                 </button>
@@ -2879,7 +2880,7 @@ function App() {
                 <button onClick={startDip} className="game-button dip-button" style={{ 
                   width: '100%',
                   background: 'linear-gradient(135deg, #40e0d0 0%, #00b8d4 100%)',
-                  height: 'clamp(2.8rem, 6.4vw, 3.6rem)', 
+                  height: 'clamp(2.24rem, 5.12vw, 2.88rem)', 
                   borderRadius: '12px', 
                   cursor: 'pointer', 
                   border: '1px solid #ff1493',
@@ -2895,7 +2896,7 @@ function App() {
                   boxShadow: '0 6px 20px rgba(64, 224, 208, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
                   transition: 'all 0.3s ease',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
-                  marginBottom: 'clamp(0.4rem, 1.2vw, 0.6rem)'
+                  marginBottom: 'clamp(0.32rem, 0.96vw, 0.48rem)'
                 }}>
                   <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                     DIP BISCUIT
@@ -2921,7 +2922,7 @@ function App() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   transition: 'all 0.3s ease',
-                  height: 'clamp(2rem, 4.8vw, 2.4rem)',
+                  height: 'clamp(1.6rem, 3.84vw, 1.92rem)',
                   fontSize: 'clamp(0.8rem, 2vw, 0.9rem)',
                   fontWeight: '700',
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
